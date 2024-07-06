@@ -1,0 +1,106 @@
+import requests
+import json
+import urllib.parse
+from geopy.geocoders import Nominatim
+
+#Daniel Nunez, Marcelo Troncoso, Matias Hernandez / 2024.
+
+def main():
+
+    print("Bienvenido, ET Programacion de Algoritmos")
+    
+    while True:
+        # Solicito el origen y destino al usuario
+        def coordenadas_ciudad(nombre_ciudad):
+            geolocator = Nominatim(user_agent="ET")  
+            location = geolocator.geocode(nombre_ciudad)
+            if location:
+                return location.latitude, location.longitude
+            else:
+                return None, None
+
+              
+        # Solicito el nombre de la primera ciudad
+        ciudad1 = input("Ingresa el nombre de la primera ciudad o origen: ")
+        latitud1, longitud1 = coordenadas_ciudad(ciudad1)
+
+        # Solicito el nombre de la segunda ciudad
+        ciudad2 = input("Ingresa el nombre de la segunda ciudad o destino: ")
+        latitud2, longitud2 = coordenadas_ciudad(ciudad2)
+         #solicito el medidio de transporte
+        print("Estas son las opciones de transporte que tenemos disponibles:")
+        print("1. auto")
+        print("2. bici")
+        print("3. caminar")
+
+        transporte = {
+        1: "car",
+        2: "bike",
+        3: "foot",
+        }
+        while True:
+            medio = input("Ingrese el número correspondiente a su medio de transporte: ")
+
+            if medio.isdigit():  # Verifica si la entrada es un número
+                medio = int(medio)  # Convierte la entrada a entero
+
+                if 1 <= medio <= 3:  # Verifica si el número está en el rango válido
+                    vehiculo = transporte[medio]  
+                    break  
+                else:
+                    print("Por favor, ingrese un número del 1 al 3.")
+            else:
+                print("Por favor, ingrese un número válido del 1 al 3.")
+
+        origen = "{},{}".format(latitud1, longitud1) if latitud1 is not None and longitud1 is not None else None
+        destino = "{},{}".format(latitud2, longitud2) if latitud2 is not None and longitud2 is not None else None
+
+            
+        api_key = "ee747cae-9367-4b93-b6f1-d83f05ed2f2d"
+        
+
+                # Realizo la solicitud a la API
+        url = f"https://graphhopper.com/api/1/route?point={origen}&point={destino}&vehicle={vehiculo}&locale=cl&locale=ar&key={api_key}"
+        response = requests.get(url)
+        
+        # Valido el funcionamiento, codigo 200 es sucess :D y codigo 400 es error :(
+        if response.status_code == 200:
+            data = response.json()
+            print("Solicitud exitosa.")
+       
+            distancia_km = round(data['paths'][0]['distance'] * 0.001, 2)
+            distancia_mi = round(data['paths'][0]['distance'] * 0.000621371, 2)
+            tiempo_min = round(data['paths'][0]['time'] / 60000, 0)
+            tiempo_horas = round(data['paths'][0]['time'] / 3600000, 2)
+            narrativa_index0 = data['paths'][0]['instructions'][0]['text']
+            narrativa_index1 = data['paths'][0]['instructions'][1]['text']
+            narrativa_index5 = data['paths'][0]['instructions'][5]['text']
+            narrativa_index10 = data['paths'][0]['instructions'][10]['text']
+            narrativa_index20 = data['paths'][0]['instructions'][20]['text']
+            narrativa_index30 = data['paths'][0]['instructions'][30]['text']
+
+            
+            # Mostrar resultados
+            print(f"Distancia en Kilometros: {distancia_km} KM")
+            print(f"Distancia en Millas: {distancia_mi} Mi")
+            print(f"Duracion del recorrido: {tiempo_min} minutos")
+            print(f"Duracion del recorrido: {tiempo_horas} Horas")
+            print(f"Narrativa - 1: {narrativa_index0}")
+            print(f"Narrativa - 2: {narrativa_index1}")
+            print(f"Narrativa - 3: {narrativa_index5}")
+            print(f"Narrativa - 4: {narrativa_index10}")
+            print(f"Narrativa - 5: {narrativa_index20}")
+            print(f"Narrativa - 6: {narrativa_index30}")
+
+        else:
+            print("Error en la solicitud. Por favor verifique los parámetros e intente nuevamente.")
+        
+    # Preguntar al usuario si desea continuar
+        continuar = input("¿Desea realizar otra consulta? Salir o Continuar escriba S o C: ")
+        if continuar.upper() == 'S':
+            print("Gracias por utilizar el script. ¡Hasta luego!")
+            break
+
+
+if __name__ == "__main__":
+    main()
